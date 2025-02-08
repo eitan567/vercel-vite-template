@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2023"],
-    "module": "ESNext",
+    "composite": true,
     "skipLibCheck": true,
+    "module": "ESNext",   
+    "allowSyntheticDefaultImports": true,
+    "outDir": "dist",  // Add this line to specify where compiled files go
 
     /* Bundler mode */
     "moduleResolution": "bundler",
