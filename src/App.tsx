@@ -19,7 +19,7 @@ function App() {
       <h1 className="text-3xl font-bold underline">
         Hello world!
       </h1>
-      <h1>Vite + React + Eitan 3</h1>
+      <h1>Vite + React + Eitan 4</h1>
       <div className="vite-card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
