@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>ג'פרדי - הנדסה גנטית</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #121254;
+            color: white;
+            text-align: right;
+            direction: rtl;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #FFD700;
+        }
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            max-width: 1000px;
+            margin: 20px auto;
+        }
+        .category {
+            background-color: #060651;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        .question {
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        /* מושגי יסוד */
+        .question[data-category="0"] {
+            background-color: #2E86C1;
+        }
+        .question[data-category="0"]:hover {
+            background-color: #3498DB;
+        }
+        /* שיטות מעבדה */
+        .question[data-category="1"] {
+            background-color: #8E44AD;
+        }
+        .question[data-category="1"]:hover {
+            background-color: #9B59B6;
+        }
+        /* יישומים */
+        .question[data-category="2"] {
+            background-color: #27AE60;
+        }
+        .question[data-category="2"]:hover {
+            background-color: #2ECC71;
+        }
+        /* אתיקה */
+        .question[data-category="3"] {
+            background-color: #D35400;
+        }
+        .question[data-category="3"]:hover {
+            background-color: #E67E22;
+        }
+        /* היסטוריה */
+        .question[data-category="4"] {
+            background-color: #C0392B;
+        }
+        .question[data-category="4"]:hover {
+            background-color: #E74C3C;
+        }
+        .question.answered {
+            background-color: #444 !important;
+            cursor: not-allowed;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+        .modal-content {
+            background-color: #121254;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .close {
+            color: #aaa;
+            float: left;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: white;
+        }
+        .score {
+            text-align: center;
+            font-size: 1.5em;
+            margin: 10px;
+            color: #FFD700;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>ג'פרדי - הנדסה גנטית</h1>
+    <div class="score">ניקוד: <span id="score">0</span></div>
+    <div class="game-board" id="gameBoard"></div>
+
+    <div class="modal" id="questionModal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="questionText"></h2>
+            <button id="showAnswer">הצג תשובה</button>
+            <div id="answerText" style="display: none;"></div>
+            <button id="correct">נכון</button>
+            <button id="incorrect">לא נכון</button>
+        </div>
+    </div>
+
+    <script>
+        const gameData = {
+            categories: [
+                "מושגי יסוד",
+                "שיטות מעבדה",
+                "יישומים",
+                "אתיקה",
+                "היסטוריה"
+            ],
+            questions: [
+                // מושגי יסוד
+                [
+                    {q: "מהו DNA?", a: "חומר תורשתי המכיל את המידע הגנטי של היצור החי", value: 100},
+                    {q: "מהו גן?", a: "קטע DNA המקודד לחלבון או תכונה מסוימת", value: 200},
+                    {q: "מהו אנזים הגבלה?", a: "אנזים החותך DNA במקומות ספציפיים", value: 300},
+                    {q: "מהו וקטור?", a: "נשא המשמש להחדרת DNA זר לתא", value: 400},
+                    {q: "מהי מוטציה?", a: "שינוי ברצף הבסיסים של ה-DNA", value: 500}
+                ],
+                // שיטות מעבדה
+                [
+                    {q: "מהי שיטת PCR?", a: "שיטה להגברת כמות ה-DNA במבחנה", value: 100},
+                    {q: "מהי אלקטרופורזה בג'ל?", a: "שיטה להפרדת מקטעי DNA לפי גודלם", value: 200},
+                    {q: "מהו ריצוף DNA?", a: "קביעת סדר הבסיסים ברצף DNA", value: 300},
+                    {q: "מהי הנדסת חלבונים?", a: "שינוי מכוון של מבנה החלבון לשיפור תפקודו", value: 400},
+                    {q: "מהי שיטת CRISPR?", a: "שיטה לעריכת גנים בעזרת מערכת חיסון חיידקית", value: 500}
+                ],
+                // יישומים
+                [
+                    {q: "מהו יצור מהונדס גנטית?", a: "אורגניזם שהוכנס לתוכו גן זר", value: 100},
+                    {q: "מהו אינסולין רקומביננטי?", a: "הורמון המיוצר בחיידקים מהונדסים גנטית", value: 200},
+                    {q: "מהם זרעים עמידים?", a: "צמחים מהונדסים העמידים למזיקים או תנאי סביבה", value: 300},
+                    {q: "מהי תרפיה גנית?", a: "טיפול במחלות על ידי החלפת גנים פגומים", value: 400},
+                    {q: "מהו שיבוט?", a: "יצירת עותק גנטי זהה של אורגניזם", value: 500}
+                ],
+                // אתיקה
+                [
+                    {q: "מהן הדילמות בהנדסה גנטית של עוברים?", a: "שאלות על שינוי תכונות תורשתיות באדם", value: 100},
+                    {q: "מהי הסכנה במזון מהונדס גנטית?", a: "חשש מהשפעות בריאותיות וסביבתיות לא צפויות", value: 200},
+                    {q: "מהן זכויות על גנים?", a: "שאלת הפטנטים על רצפי DNA ושיטות הנדסה גנטית", value: 300},
+                    {q: "מהי אחריות המדען?", a: "חובת המדען לשקול השלכות מחקרו על החברה והסביבה", value: 400},
+                    {q: "מהם גבולות השיפור הגנטי?", a: "דיון בשאלה עד כמה מותר לשנות את הטבע", value: 500}
+                ],
+                // היסטוריה
+                [
+                    {q: "מי גילה את מבנה ה-DNA?", a: "ווטסון וקריק בשנת 1953", value: 100},
+                    {q: "מהו הניסוי של גריפית?", a: "ניסוי שהוכיח שה-DNA הוא החומר התורשתי", value: 200},
+                    {q: "מתי נוצר האורגניזם המהונדס הראשון?", a: "1973 - החדרת גן צפרדע לחיידק", value: 300},
+                    {q: "מהו פרויקט הגנום האנושי?", a: "מיפוי כל הגנים באדם שהושלם ב-2003", value: 400},
+                    {q: "מי פיתח את שיטת CRISPR?", a: "ג'ניפר דודנה ועמנואל שרפנטייה", value: 500}
+                ]
+            ]
+        };
+
+        let score = 0;
+        const scoreElement = document.getElementById('score');
+        const modal = document.getElementById('questionModal');
+        const closeBtn = document.getElementsByClassName('close')[0];
+        const questionText = document.getElementById('questionText');
+        const answerText = document.getElementById('answerText');
+        const showAnswerBtn = document.getElementById('showAnswer');
+        const correctBtn = document.getElementById('correct');
+        const incorrectBtn = document.getElementById('incorrect');
+        let currentQuestionValue = 0;
+
+        function createBoard() {
+            const board = document.getElementById('gameBoard');
+            
+            // Add categories
+            gameData.categories.forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                categoryDiv.textContent = category;
+                board.appendChild(categoryDiv);
+            });
+
+            // Add questions
+            for (let i = 0; i < 5; i++) { // For each row
+                for (let j = 0; j < 5; j++) { // For each column
+                    const questionDiv = document.createElement('div');
+                    questionDiv.className = 'question';
+                    questionDiv.dataset.category = j;
+                    questionDiv.dataset.questionIndex = i;
+                    questionDiv.textContent = gameData.questions[j][i].value;
+                    questionDiv.onclick = (e) => {
+                        const category = parseInt(e.target.dataset.category);
+                        const qIndex = parseInt(e.target.dataset.questionIndex);
+                        showQuestion(category, qIndex, e.target);
+                    };
+                    board.appendChild(questionDiv);
+                }
+            }
+        }
+
+        let currentQuestionElement = null;
+
+function showQuestion(categoryIndex, questionIndex, element) {
+            const question = gameData.questions[categoryIndex][questionIndex];
+            if (!question || element.classList.contains('answered')) {
+                return;
+            }
+            
+            currentQuestionValue = question.value;
+            currentQuestionElement = element;
+            questionText.textContent = question.q;
+            answerText.textContent = question.a;
+            answerText.style.display = 'none';
+            modal.style.display = 'block';
+        }
+
+        showAnswerBtn.onclick = () => {
+            answerText.style.display = 'block';
+        };
+
+        correctBtn.onclick = () => {
+            if (currentQuestionElement) {
+                currentQuestionElement.classList.add('answered');
+                score += currentQuestionValue;
+                scoreElement.textContent = score;
+                currentQuestionElement = null;
+                modal.style.display = 'none';
+            }
+        };
+
+        incorrectBtn.onclick = () => {
+            if (currentQuestionElement) {
+                currentQuestionElement.classList.add('answered');
+                score -= currentQuestionValue;
+                scoreElement.textContent = score;
+                currentQuestionElement = null;
+                modal.style.display = 'none';
+            }
+        };
+
+        closeBtn.onclick = () => {
+            modal.style.display = 'none';
+        };
+
+        window.onclick = (event) => {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        };
+
+        createBoard();
+    </script>
+</body>
+</html>
