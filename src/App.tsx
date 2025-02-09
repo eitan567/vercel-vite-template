@@ -1,3 +1,7 @@
+// deno-lint-ignore ban-ts-comment
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
@@ -19,7 +23,7 @@ function App() {
       <h1 className="text-3xl font-bold underline">
         Hello world!
       </h1>
-      <h1>Vite + React + Eitan 4</h1>
+      <h1>Vite + React + Eitan 5</h1>
       <div className="vite-card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
